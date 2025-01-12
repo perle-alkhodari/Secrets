@@ -1,0 +1,28 @@
+body {
+    font-family: "Nunito", serif;
+    background-color: #e5e5f7;
+    opacity: 0.8;
+    background-image: radial-gradient(white 0.5px, Tomato 0.5px);
+    background-size: 10px 10px;
+}
+
+section {
+    margin-top: 70px;
+}
+
+.p-horizontal-center {
+    display: flex;
+    justify-content: center;
+}
+
+.p-no-padding {
+    padding: 0px;
+}
+
+.navbar {
+    font-size: larger;
+}
+
+.height-70 {
+    height: 70px;
+}

@@ -1,0 +1,54 @@
+/* Setting text colors */
+.red-text {
+    color: Tomato;
+}
+.orange-text {
+    color: orange
+}
+.blue-text {
+    color: dodgerblue;
+}
+.green-text {
+    color: mediumseagreen;
+}
+.gray-text {
+    color: gray;
+}
+.purple-text {
+    color: slateblue;
+}
+.violet-text {
+    color: violet;
+}
+.lightgray-text {
+    color: lightgray;
+}
+.white-text {
+    color: white;
+}
+
+/* Setting background colors */
+.red-background {
+    background-color: Tomato;
+}
+.orange-background {
+    background-color: orange
+}
+.blue-background {
+    background-color: dodgerblue;
+}
+.green-background {
+    background-color: mediumseagreen;
+}
+.gray-background {
+    background-color: gray;
+}
+.purple-background {
+    background-color: slateblue;
+}
+.violet-background {
+    background-color: violet;
+}
+.lightgray-background {
+    background-color: lightgray;
+}
