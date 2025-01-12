@@ -27,6 +27,10 @@ app.get('/register', (req, res)=> {
     res.render("register.ejs");
 })
 
+app.get('/secrets', (req, res)=> {
+    res.render("secrets.ejs");
+})
+
 // App listener
 app.listen(port, ()=> {
     console.log(`Listening to port ${port}.`);
