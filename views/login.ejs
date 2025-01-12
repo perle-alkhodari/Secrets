@@ -6,11 +6,17 @@
             <div class="mb-3">
                 <label class="form-label">Email</label>
                 <input type="email" class="p-form-input form-control" name="email" aria-describedby="emailHelp">
+                <% if (locals.emailError) { %>
+                    <div id="emailHelp" class="form-text"><%= locals.emailError %></div>
+                <% } %>
               <!--<div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>-->
             </div>
             <div class="mb-3">
                 <label class="form-label">Password</label>
                 <input type="password" class="p-form-input form-control" name="password">
+                <% if (locals.passwordError) { %>
+                    <div id="emailHelp" class="form-text"><%= locals.passwordError %></div>
+                <% } %>
             </div>
             <button type="submit" class="btn blue-background white-text">Login</button>
         </form>
