@@ -2,17 +2,19 @@
 import express from "express";
 import pg from "pg";
 import bodyParser from "body-parser";
+import bcryptjs from "bcryptjs";
 import {dirname} from "path";
 import {fileURLToPath} from "url"
 
 // Setting some essential constants
 const __dirname = dirname(fileURLToPath(import.meta.url));  // Getting the exact full path to this folder
-const app = express();                                  // Initializing app
-const port = 3000;                                      // Setting application port number
+const app = express();                                      // Initializing app
+const port = 3000;                                          // Setting application port number
+const saltRounds = 10;                                      // Used for salting while hashing passwords
 
 // Middlware
-app.use(bodyParser.urlencoded({extended: true}));       // Setting up the body parser for forms
-app.use(express.static(__dirname + "/public"));         // Showing my express application where the public folder is
+app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
+app.use(express.static(__dirname + "/public"));             // Showing my express application where the public folder is
 
 // Establishing database connection
 const db = new pg.Client(
@@ -51,32 +53,28 @@ app.post('/register', async (req, res)=> {
 
     // Putting everything in a try block
     try {
-
         // Making sure the email is unique...
-        var result = await db.query(
-            "SELECT * FROM users WHERE email = $1",
-            [email]
-        );
+        var exists = await emailExists(email);
 
-        if (result.rows.length > 0) {
-
-            // Handle the error
+        // Handle the error
+        if (exists) {
             res.render("register.ejs", {error: "An account is already registered with this email. Try logging in."})
-
         }
 
+        // Otherwise add the new user into the database
         else {
-            
-            // Otherwise add the new user into the database
-            await db.query(
-                "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
-                [username, email, password]
-            );
-
-            res.render("secrets.ejs");
+            bcryptjs.hash(password, saltRounds, async (err, hash) => {
+                // error handle first
+                if (err) {
+                    console.log("Error during password hashing.");
+                }
+                else {
+                    await addUser(username, email, hash);
+                    res.render("secrets.ejs");
+                }
+            })
         }
     } 
-
     catch(err) {
         console.log(err);
     }
@@ -92,30 +90,20 @@ app.post('/login', async (req, res)=> {
     try {
         
         // Making sure this user exists in the first place...
-        const result = await db.query(
-            "SELECT * FROM users WHERE email = $1",
-            [email]
-        );
-
-        if (result.rows.length == 0) {
-
+        const user = await getUser(email);
+        if (user.length < 1) {
             // Let user know that this email is not registered
             res.render("login.ejs", {emailError: "This email is not registered."})
-
         }
 
         else {
-
             // Since the user exists, check if the password is correct
-            var user = result.rows;
             var savedPassword = user[0].password;
-
             // If the passwords match
-            if (savedPassword == password) {
+            if (areEqual(savedPassword, password)) {
                 // let the user see the secrets
                 res.render("secrets.ejs");
             }
-
             // Otherwise take them back to login with feedback
             else {
                 res.render("login.ejs", {passwordError: "The password is incorrect."});
@@ -130,8 +118,44 @@ app.post('/login', async (req, res)=> {
     
 })
 
-
 // App listener
 app.listen(port, ()=> {
     console.log(`Listening to port ${port}.`);
 })
+
+
+// ----------------------------- FUNCTIONS
+
+
+// Helper functions
+function areEqual(a, b) {
+    return a == b;
+}
+
+// Database Queries
+async function getUser(email) {
+    var result = await db.query(
+        "SELECT * FROM users WHERE email = $1", [email]
+    )
+    return result.rows;
+}
+
+async function addUser(username, email, password) {
+    await db.query(
+        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+        [username, email, password]
+    );
+}
+
+async function emailExists(email) {
+    var isExisting;
+
+    var result = await db.query(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+    );
+
+    isExisting = (result.rows.length == 0) ? false : true;
+
+    return isExisting;
+}
