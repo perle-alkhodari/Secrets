@@ -81,10 +81,12 @@ app.get("/logout", (req, res)=> {
     })
 })
 
-app.get('/secrets', (req, res)=> {
+app.get('/secrets', async (req, res)=> {
     // req.isauth comes from passport i think
     if (req.isAuthenticated()) {
-        res.render("secrets.ejs");
+        var userID = req.user[0].id;
+        var allUserPosts = await getUserPosts(userID);
+        res.render("secrets.ejs", {userSecrets: allUserPosts});
     }
     else {
         res.redirect('/login');
@@ -241,5 +243,14 @@ async function getPublicPosts() {
     var result = await db.query(
         "SELECT post, username FROM posts JOIN users ON users.id = posts.user_id WHERE public = 'True'"
     )
+    return result.rows;
+}
+
+async function getUserPosts(userID) {
+    var result = await db.query(
+        "SELECT post FROM posts WHERE user_id = $1",
+        [userID]
+    );
+
     return result.rows;
 }
