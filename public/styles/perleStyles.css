@@ -6,6 +6,10 @@ body {
     background-size: 10px 10px;
 }
 
+h1 {
+    font-size: 80px;
+}
+
 section {
     margin-top: 70px;
 }
@@ -24,12 +28,12 @@ section {
 }
 
 form {
-    
+
 }
 
 .p-secret-div {
     height: 270px;
-    width: 230px;
+    width: 300px;
     margin: 30px;
     padding: 10px;
     padding-left: 15px;
@@ -37,7 +41,14 @@ form {
     border-width: 1px;
     background-color: lightgray;
     border-radius: 24px;
+
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.author {
+    /* flex end didn't work */
 }
 
 .navbar {

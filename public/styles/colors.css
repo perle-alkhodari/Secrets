@@ -26,6 +26,9 @@
 .white-text {
     color: white;
 }
+.brown-text {
+    color: brown;
+}
 
 /* Setting background colors */
 .red-background {
@@ -51,4 +54,7 @@
 }
 .lightgray-background {
     background-color: lightgray;
+}
+.offwhite-background {
+    background-color: #f2efef;
 }

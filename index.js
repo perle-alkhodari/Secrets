@@ -54,8 +54,11 @@ const db = new pg.Client(
 db.connect();
 
 // Home page get route
-app.get('/', (req, res)=> {
-    res.render("index.ejs");
+app.get('/', async (req, res)=> {
+
+    var openSecrets = await getPublicPosts();
+
+    res.render("index.ejs", {openSecrets: openSecrets});
 })
 
 app.get('/login', (req, res)=> {
@@ -181,8 +184,6 @@ passport.deserializeUser( (user, cb)=> {
     cb(null, user);
 })
 
-
-
 // App listener
 app.listen(port, ()=> {
     console.log(`Listening to port ${port}.`);
@@ -234,4 +235,11 @@ async function emailExists(email) {
     isExisting = (result.rows.length == 0) ? false : true;
 
     return isExisting;
+}
+
+async function getPublicPosts() {
+    var result = await db.query(
+        "SELECT post, username FROM posts JOIN users ON users.id = posts.user_id WHERE public = 'True'"
+    )
+    return result.rows;
 }
