@@ -32,10 +32,15 @@ app.get('/secrets', (req, res)=> {
 })
 
 app.post('/register', (req, res)=> {
-    
+    var username = req.body.username;
+    var email = req.body.email;
+    var password = req.body.password;
+
 })
 
 app.post('/login', (req, res)=> {
+    var email = req.body.email;
+    var password = req.body.password;
     
 })
 
