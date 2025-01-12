@@ -27,6 +27,14 @@ app.use(session(                                            // Using session as 
 ))
 app.use(passport.initialize());                             // Initializing passport middleware
 app.use(passport.session());                                // Necessary steps
+app.use((req, res, next) => {                               // Made this middleware to disable login option from all ejs files if the user is already logged in
+    if (req.isAuthenticated()) {
+        res.locals = {
+            disableLogIn: true,
+        }
+    }
+    next();
+});
 
 // Establishing database connection
 const db = new pg.Client(
@@ -54,7 +62,13 @@ app.get('/register', (req, res)=> {
 })
 
 app.get('/secrets', (req, res)=> {
-    res.render("secrets.ejs");
+    // req.isauth comes from passport i think
+    if (req.isAuthenticated()) {
+        res.render("secrets.ejs");
+    }
+    else {
+        res.redirect('/login');
+    }
 })
 
 app.post('/register', async (req, res)=> {
@@ -94,45 +108,46 @@ app.post('/register', async (req, res)=> {
 
 })
 
-app.post('/login', async (req, res)=> {
-    // Getting form data
-    const email = req.body.email;
-    const password = req.body.password;
-
-    // Putting everything in a try catch for emergency error handling
-    try {
-        // Making sure this user exists in the first place...
-        const user = await getUser(email);
-        if (user.length < 1) {
-            // Let user know that this email is not registered
-            res.render("login.ejs", {emailError: "This email is not registered."})
-        }
-        else {
-            // Since the user exists, check if the password is correct
-            var savedPassword = await getUserPassword(email);
-            // Hash the entered password
-            bcryptjs.compare(password, savedPassword, (err, result)=>{
-                if (err) {
-                    console.log("error comparing passwords.");
-                }
-                if (result) {
-                    res.render("secrets.ejs");
-                }
-                else {
-                    res.render("login.ejs", {passwordError: "The password is incorrect."});
-                }
-            })
-        }
-    }
-    catch (err) {
-        console.log(err);
-    }
-
-})
+app.post('/login', passport.authenticate("local", {      // uses local strategy
+    successRedirect: "/secrets",
+    failureRedirect: "/login"
+}))
 
 // ---------------------------- PASSPORT THINGS
 
 // Setting up the login process here
+passport.use(new Strategy(async function(username, password, cb) {
+
+        // Putting everything in a try catch for emergency error handling
+        try {
+            // Making sure this user exists in the first place...
+            const user = await getUser(username);
+            if (user.length < 1) {
+                // Let user know that this email is not registered
+                return cb(null, false);
+            }
+            else {
+                // Since the user exists, check if the password is correct
+                var savedPassword = await getUserPassword(username);
+                // Hash the entered password
+                bcryptjs.compare(password, savedPassword, (err, result)=>{
+                    if (err) {
+                        return cb(err);
+                    }
+                    if (result) {
+                        return cb(null, user);
+                    }
+                    else {
+                        return cb(null, false);
+                    }
+                })
+            }
+        }
+        catch (err) {
+            return cb(err);
+        }
+
+}));
 
 // Saving user data to local storage
 passport.serializeUser( (user, cb)=> {

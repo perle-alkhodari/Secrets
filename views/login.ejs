@@ -5,7 +5,7 @@
         <form action="/login" method="post">
             <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input type="email" class="p-form-input form-control" name="email" aria-describedby="emailHelp">
+                <input type="email" class="p-form-input form-control" name="username" aria-describedby="emailHelp">
                 <% if (locals.emailError) { %>
                     <div id="emailHelp" class="form-text"><%= locals.emailError %></div>
                 <% } %>
