@@ -14,6 +14,18 @@ const port = 3000;                                      // Setting application p
 app.use(bodyParser.urlencoded({extended: true}));       // Setting up the body parser for forms
 app.use(express.static(__dirname + "/public"));         // Showing my express application where the public folder is
 
+// Establishing database connection
+const db = new pg.Client(
+    {
+        user: 'postgres',
+        database: 'secrets',
+        host: 'localhost',
+        password: '002468',
+        port: 5432
+    }
+);
+db.connect();
+
 // Home page get route
 app.get('/', (req, res)=> {
     res.render("index.ejs");
@@ -32,15 +44,15 @@ app.get('/secrets', (req, res)=> {
 })
 
 app.post('/register', (req, res)=> {
-    var username = req.body.username;
-    var email = req.body.email;
-    var password = req.body.password;
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
 
 })
 
 app.post('/login', (req, res)=> {
-    var email = req.body.email;
-    var password = req.body.password;
+    const email = req.body.email;
+    const password = req.body.password;
     
 })
 
