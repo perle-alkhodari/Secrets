@@ -43,11 +43,18 @@ app.get('/secrets', (req, res)=> {
     res.render("secrets.ejs");
 })
 
-app.post('/register', (req, res)=> {
+app.post('/register', async (req, res)=> {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
 
+    // Add the new user into the database
+    await db.query(
+        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+        [username, email, password]
+    );
+
+    res.render("secrets.ejs");
 })
 
 app.post('/login', (req, res)=> {
