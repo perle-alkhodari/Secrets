@@ -3,7 +3,9 @@
     <!--Welcome-->
     <section>
         <div class="p-horizontal-center">
-            <h1 class="white-text">Hello World!</h1>
+            <h1 class="white-text">Hello <% if (locals.username) { %>
+             <%=locals.username%>
+            <% } else { %> World<% } %>!</h1>
         </div>
     </section>
 

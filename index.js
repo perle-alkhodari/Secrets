@@ -14,6 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));  // Getting the exact
 const app = express();                                      // Initializing app
 const port = 3000;                                          // Setting application port number
 const saltRounds = 10;                                      // Used for salting while hashing passwords
+const sevenWeeksInMilliseconds = 1000 * 60 * 60 * 24 * 7;   // One week in milliseconds
 
 // Middlware
 app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
@@ -22,7 +23,10 @@ app.use(session(                                            // Using session as 
     {
         secret: "SECRETSIGNATURE",
         resave: false,
-        saveUninitialized: true
+        saveUninitialized: true,
+        cookie: {                                           // Sets the age (timer) of the cookie
+            maxAge: sevenWeeksInMilliseconds                // I set it to a week
+        }
     }
 ))
 app.use(passport.initialize());                             // Initializing passport middleware
@@ -30,7 +34,8 @@ app.use(passport.session());                                // Necessary steps
 app.use((req, res, next) => {                               // Made this middleware to disable login option from all ejs files if the user is already logged in
     if (req.isAuthenticated()) {
         res.locals = {
-            disableLogIn: true,
+            loggedIn: true,
+            username: req.user[0].username
         }
     }
     next();
@@ -59,6 +64,18 @@ app.get('/login', (req, res)=> {
 
 app.get('/register', (req, res)=> {
     res.render("register.ejs");
+})
+
+app.get("/logout", (req, res)=> {
+    var user = req.user;
+    req.logout(user, (err)=> {
+        if (err) {
+            console.log("error logging out.");
+        }
+        else {
+            res.redirect('/');
+        }
+    })
 })
 
 app.get('/secrets', (req, res)=> {
@@ -96,8 +113,15 @@ app.post('/register', async (req, res)=> {
                 }
                 // adding the user with their hashed password
                 else {
-                    await addUser(username, email, hash);
-                    res.render("secrets.ejs");
+                    var user = await addUser(username, email, hash);
+                    req.login(user, (err)=> {
+                        if (err) {
+                            console.log("error logging in during registering.");
+                        }
+                        else {
+                            res.redirect('/secrets');
+                        }
+                    })
                 }
             })
         }
@@ -182,10 +206,13 @@ async function getUser(email) {
 }
 
 async function addUser(username, email, password) {
-    await db.query(
-        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+    var result = await db.query(
+        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
         [username, email, password]
     );
+
+    var user = result.rows[0];
+    return user;
 }
 
 async function getUserPassword(email) {
