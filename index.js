@@ -68,6 +68,7 @@ app.post('/register', async (req, res)=> {
                 if (err) {
                     console.log("Error during password hashing.");
                 }
+                // adding the user with their hashed password
                 else {
                     await addUser(username, email, hash);
                     res.render("secrets.ejs");
@@ -88,34 +89,33 @@ app.post('/login', async (req, res)=> {
 
     // Putting everything in a try catch for emergency error handling
     try {
-        
         // Making sure this user exists in the first place...
         const user = await getUser(email);
         if (user.length < 1) {
             // Let user know that this email is not registered
             res.render("login.ejs", {emailError: "This email is not registered."})
         }
-
         else {
             // Since the user exists, check if the password is correct
-            var savedPassword = user[0].password;
-            // If the passwords match
-            if (areEqual(savedPassword, password)) {
-                // let the user see the secrets
-                res.render("secrets.ejs");
-            }
-            // Otherwise take them back to login with feedback
-            else {
-                res.render("login.ejs", {passwordError: "The password is incorrect."});
-            }
+            var savedPassword = await getUserPassword(email);
+            // Hash the entered password
+            bcryptjs.compare(password, savedPassword, (err, result)=>{
+                if (err) {
+                    console.log("error comparing passwords.");
+                }
+                if (result) {
+                    res.render("secrets.ejs");
+                }
+                else {
+                    res.render("login.ejs", {passwordError: "The password is incorrect."});
+                }
+            })
         }
-
     }
-
     catch (err) {
         console.log(err);
     }
-    
+
 })
 
 // App listener
@@ -145,6 +145,14 @@ async function addUser(username, email, password) {
         "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
         [username, email, password]
     );
+}
+
+async function getUserPassword(email) {
+    var result = await db.query(
+        "SELECT password FROM users WHERE email = $1", [email]
+    );
+    var password = result.rows[0].password;
+    return password;
 }
 
 async function emailExists(email) {
