@@ -5,6 +5,9 @@ import bodyParser from "body-parser";
 import bcryptjs from "bcryptjs";
 import {dirname} from "path";
 import {fileURLToPath} from "url"
+import session from "express-session";
+import passport from "passport";
+import { Strategy } from "passport-local";
 
 // Setting some essential constants
 const __dirname = dirname(fileURLToPath(import.meta.url));  // Getting the exact full path to this folder
