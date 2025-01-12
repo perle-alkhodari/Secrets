@@ -18,6 +18,15 @@ const saltRounds = 10;                                      // Used for salting 
 // Middlware
 app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
 app.use(express.static(__dirname + "/public"));             // Showing my express application where the public folder is
+app.use(session(                                            // Using session as middleware for storing logged in out states
+    {
+        secret: "SECRETSIGNATURE",
+        resave: false,
+        saveUninitialized: true
+    }
+))
+app.use(passport.initialize());                             // Initializing passport middleware
+app.use(passport.session());                                // Necessary steps
 
 // Establishing database connection
 const db = new pg.Client(
@@ -120,6 +129,20 @@ app.post('/login', async (req, res)=> {
     }
 
 })
+
+// ---------------------------- PASSPORT THINGS
+
+// Setting up the login process here
+
+// Saving user data to local storage
+passport.serializeUser( (user, cb)=> {
+    cb(null, user);
+})
+passport.deserializeUser( (user, cb)=> {
+    cb(null, user);
+})
+
+
 
 // App listener
 app.listen(port, ()=> {
