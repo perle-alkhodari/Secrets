@@ -48,13 +48,29 @@ app.post('/register', async (req, res)=> {
     const email = req.body.email;
     const password = req.body.password;
 
-    // Add the new user into the database
-    await db.query(
-        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
-        [username, email, password]
-    );
+    try {
+        // Making sure the email is unique...
+        var result = await db.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
+        if (result.rows.length > 0) {
+            // Handle the error
+            res.render("register.ejs", {error: "An account is already registered with this email. Try logging in."})
+        }
+        else {
+            // Otherwise add the new user into the database
+            await db.query(
+                "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+                [username, email, password]
+            );
 
-    res.render("secrets.ejs");
+            res.render("secrets.ejs");
+        }
+    } catch(err) {
+        console.log(err);
+    }
+
 })
 
 app.post('/login', (req, res)=> {
