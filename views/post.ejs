@@ -1,0 +1,25 @@
+<%- include("partials/header.ejs") %>
+
+<section>
+    <container class="p-horizontal-center">
+
+        <form action="/submit-post" method="post">
+            <div class="form-group">
+                <label for="comment">Secret</label>
+                <textarea class="form-control" rows="5" id="comment" name="newPost"></textarea>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" name="isPrivate" id="exampleCheck1">
+              <label class="form-check-label">Private</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="exampleCheck1" name="isAnon">
+              <label class="form-check-label">Anonymous</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+
+    </container>
+</section>
+
+<%- include("partials/footer.ejs") %>

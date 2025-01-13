@@ -93,6 +93,31 @@ app.get('/secrets', async (req, res)=> {
     }
 })
 
+app.get("/create-post", async (req, res)=> {
+    res.render("post.ejs")
+})
+
+app.post("/submit-post", async (req, res)=> {
+
+    if (req.isAuthenticated()) {
+        var newPost = req.body.newPost;
+        var isPublic = (req.body.isPrivate == "on") ? 'False' : 'True';
+        var isAnon = (req.body.isAnon == "on") ? 'True' : 'False';
+        var userID = req.user[0].id;
+        
+        // add the new post to the db
+        try {
+
+        } catch (err) {
+            console.log(err);
+        }
+
+    }
+    else {
+        res.redirect('/login');
+    }
+})
+
 app.post('/register', async (req, res)=> {
     // Getting form data
     const username = req.body.username;

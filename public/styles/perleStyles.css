@@ -50,6 +50,11 @@ form {
     gap: 10px;
 }
 
+.p-secret-input {
+    width: 400px;
+    height: 300px;
+}
+
 a {
     text-decoration: none;
 }
