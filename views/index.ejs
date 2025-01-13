@@ -16,10 +16,11 @@
             <div class="row p-horizontal-center">
                 <!--Secrets-->
                 <% locals.openSecrets.forEach(post => { %>
-
                     <div class="offwhite-background col-md-4 col-sm-6 col-xs-12 p-secret-div">
                         <h4 class="purple-text"><%= post.post %></h4>
-                        <h6 class="green-text author"><%=post.username%></h6>
+                        <h6 class="green-text author"><% if (post.anon == true) { %>
+                            Anonymous
+                        <% } else { %><%=post.username%> <% } %></h6>
                     </div>
 
                 <% }) %>

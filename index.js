@@ -144,6 +144,7 @@ app.post('/register', async (req, res)=> {
                 }
                 // adding the user with their hashed password
                 else {
+                    console.log("hi");
                     var user = await addUser(username, email, hash);
                     req.login(user, (err)=> {
                         if (err) {
@@ -240,7 +241,7 @@ async function addUser(username, email, password) {
         [username, email, password]
     );
 
-    var user = result.rows[0];
+    var user = result.rows;
     return user;
 }
 
@@ -267,7 +268,7 @@ async function emailExists(email) {
 
 async function getPublicPosts() {
     var result = await db.query(
-        "SELECT post, username FROM posts JOIN users ON users.id = posts.user_id WHERE public = 'True'"
+        "SELECT post, username, anon FROM posts AS p JOIN users AS u ON u.id = p.user_id WHERE public = 'True' ORDER BY p.id DESC;"
     )
     return result.rows;
 }
