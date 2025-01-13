@@ -104,6 +104,18 @@ app.post("/edit-post", async (req, res) => {
     res.render("edit-post.ejs", {post_id: postToEdit.id, post: postToEdit.post, isPrivate: !postToEdit.public, isAnon: postToEdit.anon})
 })
 
+app.post("/delete-post", async (req, res) => {
+    
+        var postID = req.body.deletedItemId;
+    try {
+        await deletePost(postID);
+        res.redirect("/secrets");
+    }
+    catch(err) {
+        console.log("Error while deleting post");
+    }
+})
+
 app.post("/submit-edit-post", async (req, res) => {
 
     var postID = req.body.updatedItemId;
@@ -323,8 +335,15 @@ async function getPost(id) {
 }
 
 async function updatePost(postID, post, isPublic, isAnon) {
-    const result = await db.query(
+    await db.query(
         "UPDATE posts SET post = $1, public = $2, anon = $3 WHERE id = $4",
         [post, isPublic, isAnon, postID]
+    )
+}
+
+async function deletePost(postID) {
+    await db.query(
+        "DELETE FROM posts WHERE id = $1",
+        [postID]
     )
 }
