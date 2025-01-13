@@ -8,6 +8,7 @@ import {fileURLToPath} from "url"
 import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
+import env from "dotenv";
 
 // Setting some essential constants
 const __dirname = dirname(fileURLToPath(import.meta.url));  // Getting the exact full path to this folder
@@ -16,12 +17,14 @@ const port = 3000;                                          // Setting applicati
 const saltRounds = 10;                                      // Used for salting while hashing passwords
 const sevenWeeksInMilliseconds = 1000 * 60 * 60 * 24 * 7;   // One week in milliseconds
 
+env.config()                                                // Environment variable setup
+
 // Middlware
 app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
 app.use(express.static(__dirname + "/public"));             // Showing my express application where the public folder is
 app.use(session(                                            // Using session as middleware for storing logged in out states
     {
-        secret: "SECRETSIGNATURE",
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true,
         cookie: {                                           // Sets the age (timer) of the cookie
@@ -44,10 +47,10 @@ app.use((req, res, next) => {                               // Made this middlew
 // Establishing database connection
 const db = new pg.Client(
     {
-        user: 'postgres',
-        database: 'secrets',
-        host: 'localhost',
-        password: '002468',
+        user: process.env.DB_USER,
+        database: process.env.DB_DATABASE,
+        host: process.env.DB_HOST,
+        password: process.env.DB_PASSWORD,
         port: 5432
     }
 );
