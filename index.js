@@ -248,7 +248,7 @@ async function getPublicPosts() {
 
 async function getUserPosts(userID) {
     var result = await db.query(
-        "SELECT post FROM posts WHERE user_id = $1",
+        "SELECT post, public FROM posts WHERE user_id = $1",
         [userID]
     );
 

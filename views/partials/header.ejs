@@ -64,6 +64,11 @@
                 </ul>
               </li>
               -->
+              <% if (locals.loggedIn) { %>
+                <li class="nav-item">
+                  <a class="nav-link" href="/create-post">Post Secret</a>
+                </li>
+              <% } %>
             </ul>
           </div>
         </div>
