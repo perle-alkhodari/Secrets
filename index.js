@@ -107,7 +107,8 @@ app.post("/submit-post", async (req, res)=> {
         
         // add the new post to the db
         try {
-
+            await addPost(newPost, isPublic, isAnon, userID);
+            res.redirect('/secrets');
         } catch (err) {
             console.log(err);
         }
@@ -273,9 +274,16 @@ async function getPublicPosts() {
 
 async function getUserPosts(userID) {
     var result = await db.query(
-        "SELECT post, public FROM posts WHERE user_id = $1",
+        "SELECT post, public, anon FROM posts WHERE user_id = $1",
         [userID]
     );
 
     return result.rows;
+}
+
+async function addPost(post, isPublic, isAnon, userID) {
+    await db.query(
+        "INSERT INTO posts (post, user_id, public, anon) VALUES ($1, $2, $3, $4)",
+        [post, userID, isPublic, isAnon]
+    );
 }
