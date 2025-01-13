@@ -94,8 +94,32 @@ app.get('/secrets', async (req, res)=> {
 })
 
 app.get("/create-post", async (req, res)=> {
-    res.render("post.ejs")
+    res.render("create-post.ejs")
 })
+
+app.post("/edit-post", async (req, res) => {
+
+    var postID = req.body.updatedItemId;
+    var postToEdit = await getPost(postID);
+    res.render("edit-post.ejs", {post_id: postToEdit.id, post: postToEdit.post, isPrivate: !postToEdit.public, isAnon: postToEdit.anon})
+})
+
+app.post("/submit-edit-post", async (req, res) => {
+
+    var postID = req.body.updatedItemId;
+    var updatedPost = req.body.newPost;
+    var isPublic = (req.body.isPrivate == "on") ? 'False' : 'True';
+    var isAnon = (req.body.isAnon == "on") ? 'True' : 'False';
+
+    try {
+        await updatePost(postID, updatedPost, isPublic, isAnon);
+        res.redirect("/secrets");
+    }
+    catch (err) {
+        console.log("Error while updating post.");
+    }
+})
+
 
 app.post("/submit-post", async (req, res)=> {
 
@@ -275,7 +299,7 @@ async function getPublicPosts() {
 
 async function getUserPosts(userID) {
     var result = await db.query(
-        "SELECT post, public, anon FROM posts WHERE user_id = $1",
+        "SELECT id, post, public, anon FROM posts WHERE user_id = $1",
         [userID]
     );
 
@@ -287,4 +311,20 @@ async function addPost(post, isPublic, isAnon, userID) {
         "INSERT INTO posts (post, user_id, public, anon) VALUES ($1, $2, $3, $4)",
         [post, userID, isPublic, isAnon]
     );
+}
+
+async function getPost(id) {
+    var result = await db.query(
+        "SELECT * FROM posts WHERE id = $1",
+        [id]
+    )
+    var post = result.rows[0];
+    return post;
+}
+
+async function updatePost(postID, post, isPublic, isAnon) {
+    const result = await db.query(
+        "UPDATE posts SET post = $1, public = $2, anon = $3 WHERE id = $4",
+        [post, isPublic, isAnon, postID]
+    )
 }
