@@ -108,8 +108,20 @@ form {
     height: 300px;
 }
 
+.p-welcome-div {
+    width: 500px;
+}
+
+.welcome-message {
+    margin-right: 10px;
+}
+
 a {
     text-decoration: none;
+}
+
+.nav-div {
+    background-color: orange;
 }
 
 .author {
@@ -126,6 +138,22 @@ a {
 
 /* Responsiveness work */
 
-@media (max-width: 450px) {
-
+@media (max-width: 500px) {
+h1 {
+    font-size: 50px;
 }
+}
+
+@media (max-width: 991px) {
+    .nav-div {
+        background: tomato;
+    }
+}
+
+@media (max-width: 767px) {
+    .p-welcome-div {
+        flex-direction: column;
+        align-items: center;
+    }    
+}
+

@@ -3,10 +3,13 @@
     <!--Welcome-->
     <section>
         <div class="p-horizontal-center">
-            <h1 class="welcome-message white-text">Hello</h1> <h1 style="margin-top: -30px; opacity: 0;" class=" home-username round-borders <% if (locals.username) { %>
-            offyellow-background black-text
-            <% } %>"><% if (locals.username) { %>
+            <div class="p-welcome-div p-horizontal-center">
+                <h1 class="welcome-message white-text">Hello</h1> <h1 style="margin-top: -30px; opacity: 0;" class=" home-username round-borders <% if (locals.username) { %>
+                    offyellow-background black-text
+                    <% } %>"><% if (locals.username) { %>
                 <%=locals.username%><% } else { %> World<% } %>!</h1>
+            </div>
+
         </div>
         <div class="p-horizontal-center">
             <h2 class="exlore-message brown-text" style="margin-top: 30px; opacity: 0;">Explore Open Secrets!</h2>
