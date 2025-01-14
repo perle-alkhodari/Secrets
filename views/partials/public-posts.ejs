@@ -1,0 +1,28 @@
+<section class="p-horizontal-center">
+    <container class="container">
+        <div class="row p-horizontal-center">
+            <!--Secrets-->
+            <% locals.openSecrets.forEach(post => { %>
+                <div class="offwhite-background col-md-4 col-sm-6 col-xs-12 p-secret-div">
+                    <h4 class="purple-text"><%= post.post %></h4>
+                    <div class="p-flex-row green-text">
+                        <h6 class=" author"><% if (post.anon == true) { %>
+                            Anonymous
+                        <% } else { %><%=post.username%> <% } %></h6>
+                        <h6>|</h6>
+                        <form action="/comment-section" method="post">
+                            <input type="hidden" name="postItemId" value="<%= post.id %>">
+
+                            <button style="border:none; padding:0px; margin:0px;">
+                                <svg style="padding-top:1px" class="blue-text" xmlns="http://www.w3.org/2000/svg" height="23" fill="currentColor" class="bi bi-chat-left-dots-fill" viewBox="0 0 16 16">
+                                    <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4.414a1 1 0 0 0-.707.293L.854 15.146A.5.5 0 0 1 0 14.793zm5 4a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                                  </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            <% }) %>
+        </div>
+    </container>
+</section>

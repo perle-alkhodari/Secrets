@@ -102,16 +102,17 @@ app.get('/secrets', async (req, res)=> {
 app.get("/comment-section", async (req, res)=> {
     var postID = viewingPostID;
     var post = await getPost(postID);
+    var openSecrets = await getPublicPosts();
     
     var isSignedIn = req.isAuthenticated() ? true : false;
     var comments = await getComments(postID);
 
     if (!isSignedIn) {
-        res.render("comment-section.ejs", {post: post, comments: comments});
+        res.render("comment-section.ejs", {post: post, comments: comments, openSecrets: openSecrets});
     }
     else {
         var user = req.user[0];
-        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments})
+        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments, openSecrets: openSecrets})
     }
 })
 
@@ -180,17 +181,8 @@ app.post("/submit-post", async (req, res)=> {
 app.post("/comment-section", async (req, res)=> {
 
     var postID = req.body.postItemId;
-    var post = await getPost(postID);
-    var isSignedIn = req.isAuthenticated() ? true : false;
-    var comments = await getComments(postID);
-
-    if (!isSignedIn) {
-        res.render("comment-section.ejs", {post: post, comments: comments});
-    }
-    else {
-        var user = req.user[0];
-        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments})
-    }
+    viewingPostID = postID;
+    res.redirect("/comment-section");
 })
 
 app.post("/create-comment", async (req, res)=> {

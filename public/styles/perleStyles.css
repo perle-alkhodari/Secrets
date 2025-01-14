@@ -55,6 +55,18 @@ form {
     justify-self: flex-end;
 }
 
+.round-borders {
+    border-radius: 24px;
+}
+
+.p-garbage-icon {
+    color: tomato;
+}
+
+.p-pencil-icon {
+    color: dodgerblue;
+}
+
 .p-comments-div {
     height:auto;
     width: 300px;
