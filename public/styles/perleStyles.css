@@ -50,6 +50,11 @@ form {
     gap: 10px;
 }
 
+.p-comment-options {
+    align-self:flex-end;
+    justify-self: flex-end;
+}
+
 .p-comments-div {
     height:auto;
     width: 300px;

@@ -56,6 +56,9 @@ const db = new pg.Client(
 );
 db.connect();
 
+// variables
+var viewingPostID;
+
 // Home page get route
 app.get('/', async (req, res)=> {
 
@@ -93,6 +96,22 @@ app.get('/secrets', async (req, res)=> {
     }
     else {
         res.redirect('/login');
+    }
+})
+
+app.get("/comment-section", async (req, res)=> {
+    var postID = viewingPostID;
+    var post = await getPost(postID);
+    
+    var isSignedIn = req.isAuthenticated() ? true : false;
+    var comments = await getComments(postID);
+
+    if (!isSignedIn) {
+        res.render("comment-section.ejs", {post: post, comments: comments});
+    }
+    else {
+        var user = req.user[0];
+        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments})
     }
 })
 
@@ -179,6 +198,8 @@ app.post("/create-comment", async (req, res)=> {
     var postID = req.body.postId;
     var comment = req.body.comment;
 
+    viewingPostID = postID;
+
     // try adding this comment to the comments table in the secrets db...
     try {
         await addComment(comment, userID, postID);
@@ -187,6 +208,22 @@ app.post("/create-comment", async (req, res)=> {
     }
     catch (err) {
         console.log("Error while posting a comment");
+    }
+})
+
+app.post("/delete-comment", async (req, res) => {
+
+    var commentID = req.body.commentId;
+    var postID = req.body.postId;
+    viewingPostID = postID;
+
+    // try deleting the comment
+    try {
+        await deleteComment(commentID);
+        res.redirect(`/comment-section`);
+    }
+    catch (err) {
+        console.log("Error while deleting comment");
     }
 })
 
@@ -391,9 +428,16 @@ async function addComment(comment, user_id, post_id) {
 
 async function getComments(post_id) {
     var result = await db.query(
-        "SELECT * FROM comments JOIN users ON users.id = comments.user_id WHERE post_id = $1",
+        "SELECT user_id, comments.id, comment, username FROM comments JOIN users ON users.id = comments.user_id WHERE post_id = $1",
         [post_id]
     );
 
     return result.rows;
+}
+
+async function deleteComment(comment_id) {
+    await db.query(
+        "DELETE FROM comments WHERE id = $1",
+        [comment_id]
+    )
 }
