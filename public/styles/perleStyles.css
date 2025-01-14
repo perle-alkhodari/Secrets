@@ -123,3 +123,9 @@ a {
 .height-70 {
     height: 70px;
 }
+
+/* Responsiveness work */
+
+@media (max-width: 450px) {
+
+}
