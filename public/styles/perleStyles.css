@@ -50,6 +50,42 @@ form {
     gap: 10px;
 }
 
+.p-comments-div {
+    height:350px;
+    width: 300px;
+    margin: 30px;
+    padding: 28px;
+    width: 400px;
+    margin-left: 65px;
+    border-radius: 24px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.p-username-comment {
+    font-weight: bolder;
+    font-size: larger;
+}
+
+.p-strip-button {
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.p-vertical-center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.p-comment-input {
+    width: 88%;
+    height: 35px;
+}
+
 .p-secret-input {
     width: 400px;
     height: 300px;

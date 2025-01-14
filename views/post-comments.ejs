@@ -1,0 +1,50 @@
+<%- include("partials/header.ejs") %>
+
+<section class="p-horizontal-center">
+    <div class="p-flex-row">
+        <div class="offwhite-background col-md-4 col-sm-6 col-xs-12 p-secret-div">
+            <h4 class="purple-text"><%= post.post %></h4>
+            <div class="p-flex-row green-text">
+                <h6 class=" author"><% if (post.anon == true) { %>
+                    Anonymous
+                <% } else { %><%=post.username%> <% } %></h6>
+                <h6>|</h6>
+                <form action="/post-comments" method="post">
+                    <input type="hidden" name="postItemId" value="<%= post.id %>">
+
+                    <button style="border:none; padding:0px; margin:0px;">
+                        <svg style="padding-top:1px" class="blue-text" xmlns="http://www.w3.org/2000/svg" height="23" fill="currentColor" class="bi bi-chat-left-dots-fill" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4.414a1 1 0 0 0-.707.293L.854 15.146A.5.5 0 0 1 0 14.793zm5 4a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                          </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="offwhite-background p-comments-div">
+
+            <h3>Comments</h3>
+
+            <form class="p-vertical-center" action="/create-comment" method="post">
+                <input type="hidden" name="postItemId" value="<%= post.id %>">
+                <input contenteditable="true" class="p-comment-input" type="text" name="comment" placeholder="Say something...">
+                <button class="p-strip-button" type="submit">
+                    <svg class="purple-text"  style="padding-bottom:1px" xmlns="http://www.w3.org/2000/svg" height="34" fill="currentColor" class="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
+                        <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"/>
+                      </svg>
+                </button>
+            </form>
+
+            <hr>
+
+            <div>
+                <div class="p-username-comment p-flex-row purple-text">username: </div>
+                <div class="p-flex-row">comment comment comment comment comment comment comment comment </div>
+                <hr>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<%- include("partials/footer.ejs") %>

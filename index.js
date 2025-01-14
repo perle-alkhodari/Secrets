@@ -158,6 +158,15 @@ app.post("/submit-post", async (req, res)=> {
     }
 })
 
+app.post("/post-comments", async (req, res)=> {
+
+    var postID = req.body.postItemId;
+    var post = await getPost(postID);
+
+    res.render("post-comments.ejs", {post: post});
+
+})
+
 app.post('/register', async (req, res)=> {
     // Getting form data
     const username = req.body.username;
@@ -307,7 +316,7 @@ async function emailExists(email) {
 
 async function getPublicPosts() {
     var result = await db.query(
-        "SELECT post, username, anon FROM posts AS p JOIN users AS u ON u.id = p.user_id WHERE public = 'True' ORDER BY p.id DESC;"
+        "SELECT p.id, post, username, anon FROM posts AS p JOIN users AS u ON u.id = p.user_id WHERE public = 'True' ORDER BY p.id DESC;"
     )
     return result.rows;
 }
