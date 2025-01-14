@@ -158,13 +158,19 @@ app.post("/submit-post", async (req, res)=> {
     }
 })
 
-app.post("/post-comments", async (req, res)=> {
+app.post("/comment-section", async (req, res)=> {
 
     var postID = req.body.postItemId;
     var post = await getPost(postID);
+    var isSignedIn = req.isAuthenticated() ? true : false;
 
-    res.render("post-comments.ejs", {post: post});
-
+    if (!isSignedIn) {
+        res.render("comment-section.ejs", {post: post});
+    }
+    else {
+        var user = req.user[0];
+        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, })
+    }
 })
 
 app.post('/register', async (req, res)=> {

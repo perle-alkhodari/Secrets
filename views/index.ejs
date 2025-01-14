@@ -23,7 +23,7 @@
                                 Anonymous
                             <% } else { %><%=post.username%> <% } %></h6>
                             <h6>|</h6>
-                            <form action="/post-comments" method="post">
+                            <form action="/comment-section" method="post">
                                 <input type="hidden" name="postItemId" value="<%= post.id %>">
 
                                 <button style="border:none; padding:0px; margin:0px;">
