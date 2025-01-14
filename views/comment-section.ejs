@@ -7,7 +7,7 @@
             <div class="p-flex-row green-text">
                 <h6 class=" author"><% if (post.anon == true) { %>
                     Anonymous
-                <% } else { %><%=post.username%> <% } %></h6>
+                <% } else { %><%=locals.poster[0].username%> <% } %></h6>
                 <h6>|</h6>
                 <form action="/post-comments" method="post">
                     <input type="hidden" name="postItemId" value="<%= post.id %>">

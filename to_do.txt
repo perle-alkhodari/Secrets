@@ -1,3 +1,4 @@
 
 - email verification
--
+- navbar responsiveness
+- more animation

@@ -102,17 +102,18 @@ app.get('/secrets', async (req, res)=> {
 app.get("/comment-section", async (req, res)=> {
     var postID = viewingPostID;
     var post = await getPost(postID);
+    var poster = await getUserById(post.user_id);
     var openSecrets = await getPublicPosts();
     
     var isSignedIn = req.isAuthenticated() ? true : false;
     var comments = await getComments(postID);
 
     if (!isSignedIn) {
-        res.render("comment-section.ejs", {post: post, comments: comments, openSecrets: openSecrets});
+        res.render("comment-section.ejs", {post: post, poster: poster, comments: comments, openSecrets: openSecrets});
     }
     else {
         var user = req.user[0];
-        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments, openSecrets: openSecrets})
+        res.render("comment-section.ejs", {post: post, poster: poster, isSignedIn: true, user_id: user.id, comments: comments, openSecrets: openSecrets})
     }
 })
 
@@ -330,6 +331,13 @@ function areEqual(a, b) {
 async function getUser(email) {
     var result = await db.query(
         "SELECT * FROM users WHERE email = $1", [email]
+    )
+    return result.rows;
+}
+
+async function getUserById(id) {
+    var result = await db.query(
+        "SELECT * FROM users WHERE id = $1", [id]
     )
     return result.rows;
 }
