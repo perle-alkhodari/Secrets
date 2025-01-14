@@ -51,7 +51,7 @@ form {
 }
 
 .p-comments-div {
-    height:350px;
+    height:auto;
     width: 300px;
     margin: 30px;
     padding: 28px;

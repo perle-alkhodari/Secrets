@@ -149,7 +149,7 @@ app.post("/submit-post", async (req, res)=> {
             await addPost(newPost, isPublic, isAnon, userID);
             res.redirect('/secrets');
         } catch (err) {
-            console.log(err);
+            console.log("Error while submitting a post");
         }
 
     }
@@ -163,13 +163,30 @@ app.post("/comment-section", async (req, res)=> {
     var postID = req.body.postItemId;
     var post = await getPost(postID);
     var isSignedIn = req.isAuthenticated() ? true : false;
+    var comments = await getComments(postID);
 
     if (!isSignedIn) {
-        res.render("comment-section.ejs", {post: post});
+        res.render("comment-section.ejs", {post: post, comments: comments});
     }
     else {
         var user = req.user[0];
-        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, })
+        res.render("comment-section.ejs", {post: post, isSignedIn: true, user_id: user.id, comments: comments})
+    }
+})
+
+app.post("/create-comment", async (req, res)=> {
+    var userID = req.body.userId;
+    var postID = req.body.postId;
+    var comment = req.body.comment;
+
+    // try adding this comment to the comments table in the secrets db...
+    try {
+        await addComment(comment, userID, postID);
+
+        res.redirect('/comment-section');
+    }
+    catch (err) {
+        console.log("Error while posting a comment");
     }
 })
 
@@ -198,7 +215,6 @@ app.post('/register', async (req, res)=> {
                 }
                 // adding the user with their hashed password
                 else {
-                    console.log("hi");
                     var user = await addUser(username, email, hash);
                     req.login(user, (err)=> {
                         if (err) {
@@ -213,7 +229,7 @@ app.post('/register', async (req, res)=> {
         }
     } 
     catch(err) {
-        console.log(err);
+        console.log("Error while resgistering");
     }
 
 })
@@ -359,9 +375,25 @@ async function updatePost(postID, post, isPublic, isAnon) {
     )
 }
 
-async function deletePost(postID) {
+async function deletePost(post_id) {
     await db.query(
         "DELETE FROM posts WHERE id = $1",
-        [postID]
+        [post_id]
     )
+}
+
+async function addComment(comment, user_id, post_id) {
+    await db.query(
+        "INSERT INTO comments(comment, user_id, post_id) VALUES ($1, $2, $3)",
+        [comment, user_id, post_id]
+    );
+}
+
+async function getComments(post_id) {
+    var result = await db.query(
+        "SELECT * FROM comments JOIN users ON users.id = comments.user_id WHERE post_id = $1",
+        [post_id]
+    );
+
+    return result.rows;
 }
