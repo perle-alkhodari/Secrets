@@ -9,15 +9,18 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import env from "dotenv";
+import {makeTransport} from "./email-sender.js";
+import * as helper from "./helper.js";
+
+env.config()     
 
 // Setting some essential constants
 const __dirname = dirname(fileURLToPath(import.meta.url));  // Getting the exact full path to this folder
 const app = express();                                      // Initializing app
 const port = 3000;                                          // Setting application port number
 const saltRounds = 10;                                      // Used for salting while hashing passwords
-const sevenWeeksInMilliseconds = 1000 * 60 * 60 * 24 * 7;   // One week in milliseconds
-
-env.config()                                                // Environment variable setup
+const sevenWeeksInMilliseconds = 1000 * 60 * 60 * 24 * 7;   // One week in milliseconds                                           // Environment variable setup
+const transporter = makeTransport(process.env);             // This is my email sender
 
 // Middlware
 app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
@@ -47,17 +50,18 @@ app.use((req, res, next) => {                               // Made this middlew
 // Establishing database connection
 const db = new pg.Client(
     {
-        user: process.env.DB_USER,
-        database: process.env.DB_DATABASE,
-        host: process.env.DB_HOST,
-        password: process.env.DB_PASSWORD,
-        port: 5432
+        user: process.env.DB_USER,                          // postgres
+        database: process.env.DB_DATABASE,                  // Database name
+        host: process.env.DB_HOST,                          // Host
+        password: process.env.DB_PASSWORD,                  // Database password
+        port: 5432                                          // Port num of postgres
     }
 );
 db.connect();
 
 // variables
-var viewingPostID;
+var viewingPostID;                                          // Used for redirecting to comment-section get route
+var generatedCode;                                          // Used to verify emails
 
 // Home page get route
 app.get('/', async (req, res)=> {
@@ -109,11 +113,22 @@ app.get("/comment-section", async (req, res)=> {
     var comments = await getComments(postID);
 
     if (!isSignedIn) {
-        res.render("comment-section.ejs", {post: post, poster: poster, comments: comments, openSecrets: openSecrets});
+        res.render("comment-section.ejs", {
+            post: post,
+            poster: poster, 
+            comments: comments, 
+            openSecrets: openSecrets});
     }
+
     else {
         var user = req.user[0];
-        res.render("comment-section.ejs", {post: post, poster: poster, isSignedIn: true, user_id: user.id, comments: comments, openSecrets: openSecrets})
+        res.render("comment-section.ejs", {
+            post: post, 
+            poster: poster, 
+            isSignedIn: true, 
+            user_id: user.id, 
+            comments: comments, 
+            openSecrets: openSecrets})
     }
 })
 
@@ -125,13 +140,18 @@ app.post("/edit-post", async (req, res) => {
 
     var postID = req.body.updatedItemId;
     var postToEdit = await getPost(postID);
-    res.render("edit-post.ejs", {post_id: postToEdit.id, post: postToEdit.post, isPrivate: !postToEdit.public, isAnon: postToEdit.anon})
+    res.render("edit-post.ejs", {
+        post_id: postToEdit.id, 
+        post: postToEdit.post, 
+        isPrivate: !postToEdit.public, 
+        isAnon: postToEdit.anon})
 })
 
 app.post("/delete-post", async (req, res) => {
     
         var postID = req.body.deletedItemId;
     try {
+        await deleteComments(postID);
         await deletePost(postID);
         res.redirect("/secrets");
     }
@@ -245,15 +265,17 @@ app.post('/register', async (req, res)=> {
                 }
                 // adding the user with their hashed password
                 else {
-                    var user = await addUser(username, email, hash);
-                    req.login(user, (err)=> {
-                        if (err) {
-                            console.log("error logging in during registering.");
-                        }
-                        else {
-                            res.redirect('/secrets');
-                        }
+                    // Send the user a code to verify their email
+                    generatedCode = helper.generateCode();
+                    var info = await transporter.sendMail({
+                        from: process.env.SMTP_EMAIL,
+                        to: email,
+                        subject: 'Verify Your Secrets Email',
+                        text: `Verification Code: ${generatedCode}`
                     })
+
+                    // Send the user to a page where they can enter a code.
+                    res.render("email-verification.ejs", {email: email, username: username, password: hash});
                 }
             })
         }
@@ -262,6 +284,29 @@ app.post('/register', async (req, res)=> {
         console.log("Error while resgistering");
     }
 
+})
+
+app.post("/verify-email", async (req, res)=> {
+    const username = req.body.username;
+    const email = req.body.email;
+    const hash = req.body.password;
+    var userCode = req.body.verificationCode;
+    
+    if (userCode === generatedCode) {
+        // If the codes match, then create the user and log them in
+        var user = await addUser(username, email, hash);
+        req.login(user, (err)=> {
+            if (err) {
+                console.log("error logging in during registering.");
+            }
+            else {
+                res.redirect('/secrets');
+            }
+        })
+    }
+    else {
+        res.render("email-verification.ejs", {error: "Wrong code. Try Again.", email: email, username: username, password: hash});
+    }
 })
 
 app.post('/login', passport.authenticate("local", {      // uses local strategy
@@ -439,5 +484,12 @@ async function deleteComment(comment_id) {
     await db.query(
         "DELETE FROM comments WHERE id = $1",
         [comment_id]
+    )
+}
+
+async function deleteComments(post_id) {
+    await db.query(
+        "DELETE FROM comments WHERE post_id = $1",
+        [post_id]
     )
 }

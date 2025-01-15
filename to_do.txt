@@ -2,3 +2,4 @@
 - email verification
 - navbar responsiveness
 - more animation
+- add more comments to things

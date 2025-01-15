@@ -1,0 +1,21 @@
+<%- include("partials/header.ejs") %>
+
+<section>
+    <container class="p-horizontal-center">
+        <form action="/verify-email" method="post">
+            <div class="mb-3">
+                <input type="hidden" name="email" value="<%= locals.email %>"> 
+                <input type="hidden" name="username" value="<%= locals.username %>"> 
+                <input type="hidden" name="password" value="<%= locals.password %>"> 
+                <input type="hidden" name="resend" value="false"> 
+                <label class="form-label">Email Verification Code</label>
+                <input type="text" class="p-form-input form-control" name="verificationCode" aria-describedby="emailHelp">
+                    <div id="emailHelp" class="form-text"> <% if (locals.error) { %>
+                     <%= locals.error %>
+                    <% } else {%> Enter the verification code sent to your email.<% }%> </div>
+            <button type="submit" class="btn blue-background white-text">Verify</button>
+        </form>
+    </container>
+</section>
+
+<%- include("partials/footer.ejs") %>
