@@ -9,6 +9,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import env from "dotenv";
+import GoogleStrategy from "passport-google-oauth2";
 import {makeTransport} from "./email-sender.js";
 import * as helper from "./helper.js";
 
@@ -67,9 +68,9 @@ var generatedCode;                                          // Used to verify em
 // Home page get route
 app.get('/', async (req, res)=> {
 
-    var openSecrets = await getPublicPosts();
+    var openSecrets = await getPublicPosts();               // Get public posts
 
-    res.render("index.ejs", {openSecrets: openSecrets});
+    res.render("index.ejs", {openSecrets: openSecrets});    // Render ejs with public posts
 })
 
 app.get('/login', (req, res)=> {
@@ -82,7 +83,7 @@ app.get('/register', (req, res)=> {
 
 app.get("/logout", (req, res)=> {
     var user = req.user;
-    req.logout(user, (err)=> {
+    req.logout(user, (err)=> {                              // Logs out users
         if (err) {
             console.log("error logging out.");
         }
@@ -92,7 +93,7 @@ app.get("/logout", (req, res)=> {
     })
 })
 
-app.get('/secrets', async (req, res)=> {
+app.get('/secrets', async (req, res)=> {                    // Only viewable when logged in
     // req.isauth comes from passport i think
     if (req.isAuthenticated()) {
         var userID = req.user[0].id;
@@ -375,10 +376,21 @@ app.post('/login', passport.authenticate("local", {      // uses local strategy
     failureRedirect: "/login"
 }))
 
+app.post("/auth/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })
+)
+
+app.get("/auth/google/secrets", passport.authenticate("google", {
+    successRedirect: "/secrets",
+    failureRedirect: "/login"
+}))
+
 // ---------------------------- PASSPORT THINGS
 
 // Setting up the login process here
-passport.use(new Strategy(async function(username, password, cb) {
+passport.use("local", new Strategy(async function(username, password, cb) {
 
         // Putting everything in a try catch for emergency error handling
         try {
@@ -410,6 +422,43 @@ passport.use(new Strategy(async function(username, password, cb) {
         }
 
 }));
+
+passport.use("google",
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: "http://localhost:3000/auth/google/secrets",
+            userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+        },
+        async (accessToken, refreshToken, profile, cb)=>{
+            
+            var email = profile.email;
+            var username = profile.name.givenName;
+
+            // Making sure the email is unique
+            var exists = await emailExists(email);
+
+            try {
+                // If it is unique...
+                if (!exists) {
+                    var newUser = await addUser(username, email, "google");
+                    cb(null, newUser);
+                }
+                // If they already exist let them pass 
+                else {
+                    var newUser = await getUser(email);
+                    if (newUser[0].password == "google") {
+                        cb(null, newUser);
+                    }
+                }      
+            }
+            catch (err) {
+                console.log("Error during google sign in");
+            }
+        }
+    )
+)
 
 // Saving user data to local storage
 passport.serializeUser( (user, cb)=> {

@@ -17,6 +17,7 @@ section {
 .p-horizontal-center {
     display: flex;
     justify-content: center;
+    width:100vw;
 }
 
 .p-no-padding {
@@ -65,6 +66,10 @@ form {
 
 .p-pencil-icon {
     color: dodgerblue;
+}
+
+.p-google-icon {
+    margin-top:3px;
 }
 
 .p-comments-div {
