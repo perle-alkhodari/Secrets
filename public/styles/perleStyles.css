@@ -112,6 +112,22 @@ form {
     width: 500px;
 }
 
+.p-flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.p-like-count {
+    margin: 0px;
+    padding: 0px;
+    font-size: 13px;
+}
+
+.p-likes-div {
+    gap: 2px;
+}
+
 .welcome-message {
     margin-right: 10px;
 }

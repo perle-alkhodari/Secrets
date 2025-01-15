@@ -22,7 +22,7 @@ const saltRounds = 10;                                      // Used for salting 
 const sevenWeeksInMilliseconds = 1000 * 60 * 60 * 24 * 7;   // One week in milliseconds                                           // Environment variable setup
 const transporter = makeTransport(process.env);             // This is my email sender
 
-// Middlware
+// Middleware
 app.use(bodyParser.urlencoded({extended: true}));           // Setting up the body parser for forms
 app.use(express.static(__dirname + "/public"));             // Showing my express application where the public folder is
 app.use(session(                                            // Using session as middleware for storing logged in out states
@@ -41,7 +41,8 @@ app.use((req, res, next) => {                               // Made this middlew
     if (req.isAuthenticated()) {
         res.locals = {
             loggedIn: true,
-            username: req.user[0].username
+            username: req.user[0].username,
+            userId: req.user[0].id
         }
     }
     next();
@@ -105,30 +106,49 @@ app.get('/secrets', async (req, res)=> {
 
 app.get("/comment-section", async (req, res)=> {
     var postID = viewingPostID;
-    var post = await getPost(postID);
-    var poster = await getUserById(post.user_id);
-    var openSecrets = await getPublicPosts();
-    
     var isSignedIn = req.isAuthenticated() ? true : false;
-    var comments = await getComments(postID);
+
+    // Queries 
+    try {
+        var post = await getPost(postID);
+        var poster = await getUserById(post.user_id);
+        var openSecrets = await getPublicPosts();
+        var comments = await getComments(postID);
+    }
+    catch(err) {
+        console.log("Error viewing comments");
+    }
+
 
     if (!isSignedIn) {
+
         res.render("comment-section.ejs", {
             post: post,
             poster: poster, 
             comments: comments, 
-            openSecrets: openSecrets});
+            openSecrets: openSecrets,
+        });
     }
 
     else {
+        var userLikedComments = await getUserLikedComments(postID, req.user[0].id);
+        var userLikedCommentsIds = [];
+
+        userLikedComments.forEach((comment)=> {
+            userLikedCommentsIds.push(comment.comment_id);
+        })
+
         var user = req.user[0];
+        
         res.render("comment-section.ejs", {
             post: post, 
             poster: poster, 
             isSignedIn: true, 
             user_id: user.id, 
             comments: comments, 
-            openSecrets: openSecrets})
+            openSecrets: openSecrets,
+            userLikedCommentsIds: userLikedCommentsIds
+        })
     }
 })
 
@@ -196,6 +216,47 @@ app.post("/submit-post", async (req, res)=> {
     }
     else {
         res.redirect('/login');
+    }
+})
+
+app.post("/like-comment", async (req, res)=> {
+
+    // Can only like a comment if they're logged in
+    if (req.isAuthenticated()) {
+        // increment comment likes
+        var comment_id = req.body.commentId;
+        var liker_id = req.body.likerId;
+        viewingPostID = req.body.postId;
+
+        try {
+            // try adding this like to the liked_comments table and increment the like_count in comments
+            await addLikedComment(comment_id, liker_id, viewingPostID);
+
+            // Like added and user redirected
+            res.redirect("/comment-section");
+        }
+        catch (err) {
+            console.log("Error while liking a comment.");
+        }
+    }
+    else {
+        res.redirect("/login");
+    }
+
+})
+
+app.post("/unlike-comment", async (req, res)=> {
+    var comment_id = req.body.commentId;
+    var liker_id = req.user[0].id;
+    viewingPostID = req.body.postId;
+
+    try {
+        // deletes and decrements
+        await deleteLikedComment(comment_id, liker_id);
+        res.redirect("comment-section");
+    }
+    catch (err) {
+        console.log("Error while unliking a comment");
     }
 })
 
@@ -473,7 +534,7 @@ async function addComment(comment, user_id, post_id) {
 
 async function getComments(post_id) {
     var result = await db.query(
-        "SELECT user_id, comments.id, comment, username FROM comments JOIN users ON users.id = comments.user_id WHERE post_id = $1",
+        "SELECT like_count, user_id, comments.id, comment, username FROM comments JOIN users ON users.id = comments.user_id WHERE post_id = $1",
         [post_id]
     );
 
@@ -482,14 +543,64 @@ async function getComments(post_id) {
 
 async function deleteComment(comment_id) {
     await db.query(
+        "DELETE FROM liked_comments WHERE comment_id = $1",
+        [comment_id]
+    )
+
+    await db.query(
         "DELETE FROM comments WHERE id = $1",
+        [comment_id]
+    )
+
+}
+
+async function deleteComments(post_id) {
+
+    await db.query(
+        "DELETE FROM liked_comments WHERE post_id = $1",
+        [post_id]
+    )
+
+    await db.query(
+        "DELETE FROM comments WHERE post_id = $1",
+        [post_id]
+    )
+}
+
+async function addLikedComment(comment_id, user_id, post_id) {
+    await db.query(
+        "INSERT INTO liked_comments(comment_id, user_id, post_id) VALUES ($1, $2, $3)",
+        [comment_id, user_id, post_id]
+    )
+
+    await addLike(comment_id);
+}
+
+async function getUserLikedComments(post_id, user_id) {
+    var result = await db.query(
+        "SELECT * FROM liked_comments WHERE post_id = $1 AND user_id = $2",
+        [post_id, user_id]
+    )
+    return result.rows;
+}
+
+async function addLike(comment_id) {
+    // Get the like count
+    var result = await db.query(
+        "UPDATE comments SET like_count = like_count + 1 WHERE id = $1",
         [comment_id]
     )
 }
 
-async function deleteComments(post_id) {
+async function deleteLikedComment(comment_id, liker_id) {
     await db.query(
-        "DELETE FROM comments WHERE post_id = $1",
-        [post_id]
+        "DELETE FROM liked_comments WHERE comment_id = $1 AND user_id = $2",
+        [comment_id, liker_id]
+    )
+
+    // Decrement from comments a like
+    await db.query(
+        "UPDATE comments SET like_count = like_count - 1 WHERE id = $1",
+        [comment_id]
     )
 }

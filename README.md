@@ -27,9 +27,9 @@ Section 2 ////////////////////// THIS APPLICATION USES POSTGRES
 
     NOTE: The name of the database is in an environment variable.
 
-    NOTE: There are so far three tables in the database, here is
-    the sql code that creates them (download postresql and run
-    these sql commands after creating the database).
+    NOTE: Here is the sql code that creates the tables used in this app, 
+    (download postresql and run these sql commands after creating the 
+    database).
 
 Section 3 ////////////////////// DATABASE TABLES USED IN THIS APPLICATION
 
@@ -53,7 +53,16 @@ Section 3 ////////////////////// DATABASE TABLES USED IN THIS APPLICATION
         post_id INTEGER REFERENCES post(id),
         user_id INTEGER REFERENCES user(id),
         comment VARCHAR(500) NOT NULL,
+        like_count INTEGER DEFAULT 0,
         UNIQUE (comment, user_id)
+    )
+
+    CREATE TABLE liked_comments (
+        id SERIAL PRIMARY KEY,
+        comment_id INTEGER REFERENCES comments(id),
+        user_id INTEGER REFERENCES users(id),
+        UNIQUE (comment_id, user_id),
+        post_id INTEGER REFERENCES posts(id)
     )
 
 Section 4 ////////////////////// ENVIRONMENT VARIABLES
