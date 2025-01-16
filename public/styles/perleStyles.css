@@ -17,7 +17,6 @@ section {
 .p-horizontal-center {
     display: flex;
     justify-content: center;
-    width:100vw;
 }
 
 .p-no-padding {
